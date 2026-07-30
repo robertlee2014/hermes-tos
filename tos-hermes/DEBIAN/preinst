@@ -1,6 +1,7 @@
 #!/bin/bash
 # Hermes AI Agent - TOS 7 preinst script
 # Creates user and directories before installation
+# Detects target disk volume for data storage
 
 set -e
 
@@ -8,23 +9,45 @@ echo "Creating hermes user and group..."
 
 # Create user if not exists
 if ! id -u hermes >/dev/null 2>&1; then
-    useradd -r -s /bin/false -d /usr/local/com.nousresearch.hermes hermes
+    useradd -r -s /bin/false -d /usr/local/hermes-app hermes
     echo "User 'hermes' created"
 else
     echo "User 'hermes' already exists"
 fi
 
+# Detect target volume for data storage
+# Check common TOS volume mount points
+TARGET_VOLUME=""
+for vol in /volume1 /volume2 /volume3 /volume4 /volume5; do
+    if [ -d "$vol" ] && [ -w "$vol" ]; then
+        TARGET_VOLUME="$vol"
+        break
+    fi
+done
+
+# Fallback to root if no volume found (single disk or system drive)
+if [ -z "$TARGET_VOLUME" ]; then
+    TARGET_VOLUME="/"
+fi
+
+echo "Target volume for data storage: ${TARGET_VOLUME}"
+
 # Create required directories
-mkdir -p /usr/local/com.nousresearch.hermes/data
-mkdir -p /var/log/com.nousresearch.hermes
-mkdir -p /var/run/com.nousresearch.hermes
+mkdir -p /usr/local/hermes-app/data
+mkdir -p /var/log/hermes-app
+mkdir -p /var/run/hermes-app
 mkdir -p /var/api
+mkdir -p "${TARGET_VOLUME}/HermesWorkspace"
 
 # Set ownership
-chown -R hermes:hermes /usr/local/com.nousresearch.hermes
-chown -R hermes:hermes /var/log/com.nousresearch.hermes
-chown -R hermes:hermes /var/run/com.nousresearch.hermes
+chown -R hermes:hermes /usr/local/hermes-app
+chown -R hermes:hermes /var/log/hermes-app
+chown -R hermes:hermes /var/run/hermes-app
 chown hermes:hermes /var/api
+chown -R hermes:hermes "${TARGET_VOLUME}/HermesWorkspace"
+
+# Store the target volume path for postinst to use
+echo "${TARGET_VOLUME}" > /usr/local/hermes-app/.data_volume
 
 echo "Pre-installation completed"
 exit 0

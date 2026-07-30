@@ -5,7 +5,15 @@
 set -e
 
 echo "Hermes AI Agent removed."
-echo "Data directory /usr/local/com.nousresearch.hermes/data is preserved."
-echo "To completely remove all data, run: rm -rf /usr/local/com.nousresearch.hermes"
+echo ""
+echo "Data directory location depends on your disk configuration:"
+echo "  - Check /volume1/HermesWorkspace"
+echo "  - Check /volume2/HermesWorkspace"
+echo "  - Or search: find /volume* -maxdepth 1 -type d -name 'HermesWorkspace'"
+echo ""
+echo "To completely remove all data, run:"
+echo "  sudo rm -rf /volume*/HermesWorkspace"
+echo ""
+echo "To preserve data for future reinstallation, skip the above command."
 
 exit 0

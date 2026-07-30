@@ -6,8 +6,8 @@ set -e
 
 echo "Stopping Hermes service..."
 
-systemctl stop com.nousresearch.hermes.service 2>/dev/null || true
-systemctl disable com.nousresearch.hermes.service 2>/dev/null || true
+systemctl stop hermes-app.service 2>/dev/null || true
+systemctl disable hermes-app.service 2>/dev/null || true
 
 echo "Service stopped"
 exit 0

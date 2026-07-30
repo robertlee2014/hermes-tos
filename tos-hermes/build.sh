@@ -4,7 +4,7 @@
 
 set -e
 
-APP_ID="com.nousresearch.hermes"
+APP_ID="hermes-app"
 VERSION="0.1.9"
 ARCH="amd64"
 OUTPUT_DIR=".."
@@ -41,7 +41,7 @@ python3 << 'PYEOF'
 required_langs = ['zh-cn', 'zh-hk', 'en-us', 'fr-fr', 'de-de',
                   'it-it', 'es-es', 'hu-hu', 'ja-jp', 'ko-kr',
                   'pl-pl', 'ru-ru', 'tr-tr', 'pt-pt']
-with open('com.nousresearch.hermes.lang', 'r') as f:
+with open('hermes-app.lang', 'r') as f:
     content = f.read()
 for lang in required_langs:
     if f'[{lang}]' not in content:
@@ -56,7 +56,7 @@ import json, os
 config = json.load(open('config.ini'))
 icon_path = config['icon']
 icon_file = icon_path.lstrip('/')
-full_path = f"usr/local/com.nousresearch.hermes/{icon_file}"
+full_path = f"usr/local/hermes-app/{icon_file}"
 if not os.path.exists(full_path):
     print(f"ERROR: 图标未找到：{full_path}")
     exit(1)
@@ -98,7 +98,7 @@ PYEOF
 # 步骤 4: 设置权限
 echo "[4/6] 设置文件权限..."
 chmod 755 DEBIAN/preinst DEBIAN/postinst DEBIAN/prerm DEBIAN/postrm
-chmod 755 usr/local/com.nousresearch.hermes/bin/hermes-start.sh
+chmod 755 usr/local/hermes-app/bin/hermes-start.sh
 echo "  ✓ 权限设置完成"
 
 # 步骤 5: 构建 deb 包

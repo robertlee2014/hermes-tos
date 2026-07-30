@@ -1,11 +1,30 @@
 #!/bin/bash
 # Hermes AI Agent - TOS 7 postinst script
 # Installs Python dependencies and downloads WebUI after installation
+# Uses HermesWorkspace on the target disk volume for dynamic data
 
 set -e
 
-LOG_FILE="/var/log/com.nousresearch.hermes/install.log"
-DATA_DIR="/usr/local/com.nousresearch.hermes/data"
+LOG_FILE="/var/log/hermes-app/install.log"
+
+# Read target volume from preinst
+if [ -f "/usr/local/hermes-app/.data_volume" ]; then
+    TARGET_VOLUME=$(cat /usr/local/hermes-app/.data_volume)
+else
+    # Fallback: detect volume again
+    TARGET_VOLUME=""
+    for vol in /volume1 /volume2 /volume3 /volume4 /volume5; do
+        if [ -d "$vol" ] && [ -w "$vol" ]; then
+            TARGET_VOLUME="$vol"
+            break
+        fi
+    done
+    if [ -z "$TARGET_VOLUME" ]; then
+        TARGET_VOLUME="/"
+    fi
+fi
+
+DATA_DIR="${TARGET_VOLUME}/HermesWorkspace"
 VENV_DIR="${DATA_DIR}/venv"
 WEBUI_DIR="${DATA_DIR}/hermes-webui"
 WORKSPACE_DIR="${DATA_DIR}/workspace"
@@ -22,6 +41,7 @@ error_exit() {
 mkdir -p "${DATA_DIR}" "${WORKSPACE_DIR}" "$(dirname "${LOG_FILE}")"
 
 log_msg "=== Hermes AI Agent Post-Installation ==="
+log_msg "Data directory: ${DATA_DIR}"
 
 # pip mirrors fallback chain
 PIP_MIRRORS=(
@@ -126,11 +146,11 @@ chmod 755 "${VENV_DIR}/bin/"
 
 # Enable and start service
 systemctl daemon-reload
-systemctl enable com.nousresearch.hermes.service
+systemctl enable hermes-app.service
 
 log_msg "=== Installation Completed ==="
 log_msg "Start the application from TOS App Center or run:"
-log_msg "  systemctl start com.nousresearch.hermes"
-log_msg "Access via: http://<NAS_IP>/com.nousresearch.hermes/"
+log_msg "  systemctl start hermes-app"
+log_msg "Access via: http://<NAS_IP>/hermes-app/"
 
 exit 0
