@@ -17,7 +17,7 @@ Hermes 是一款自进化 AI 智能体应用，专为 TOS 7 系统设计。提�
 - 🔌 **多模型支持**: 兼容本地部署与云端 API，灵活切换
 - 💾 **持久化记忆**: 上下文长期保存，支持跨会话连续对话
 - 🔒 **安全通信**: Unix Socket + TOS 平台代理，数据不出内网
-- 📦 **智能安装**: 多层 pip 镜像与 GitHub 代理兜底，安装更稳定
+- 📦 **轻量安装包**: 仅包含核心启动脚本，运行时自动下载最新组件（hermes-agent 和 hermes-webui），确保始终使用最新版本
 
 ## 安装方式
 
@@ -94,8 +94,12 @@ http://<您的 NAS IP>/hermes-app/
 # 数据路径（动态数据，位于 deb 安装磁盘）
 /volumeX/HermesWorkspace/        # X 为实际磁盘编号（如 volume1, volume2）
 ├── venv/                        # Python 虚拟环境（首次启动时生成）
-├── hermes-webui/                # WebUI 源码（动态下载）
+├── hermes-agent/                # AI 智能体源码（首次启动时自动下载）
+├── hermes-webui/                # WebUI 源码（首次启动时自动下载）
 └── workspace/                   # Agent 工作区与记忆存储
+
+# 说明：应用包本身仅包含启动脚本和配置文件（约 50KB），不包含 hermes-agent 和 hermes-webui 源码。
+# 首次启动时会自动从 GitHub 克隆最新代码到 HermesWorkspace 目录，确保始终使用最新版本。
 ```
 
 > **说明**：TOS 系统可能有多个磁盘（`/volume1`, `/volume2` 等），deb 包安装时会自动检测目标磁盘，并在该磁盘根目录创建 `HermesWorkspace` 文件夹用于存储所有运行时数据。

@@ -27,6 +27,7 @@ fi
 DATA_DIR="${TARGET_VOLUME}/HermesWorkspace"
 VENV_DIR="${DATA_DIR}/venv"
 WEBUI_DIR="${DATA_DIR}/hermes-webui"
+AGENT_DIR="${DATA_DIR}/hermes-agent"
 WORKSPACE_DIR="${DATA_DIR}/workspace"
 
 log_msg() {
@@ -63,7 +64,7 @@ GH_PROXIES=(
 )
 
 # Step 1: Create virtual environment
-log_msg "Step 1/4: Creating Python virtual environment..."
+log_msg "Step 1/5: Creating Python virtual environment..."
 if [ ! -f "${VENV_DIR}/bin/python3" ]; then
     python3 -m venv "${VENV_DIR}" 2>&1 | tee -a "${LOG_FILE}"
     "${VENV_DIR}/bin/pip" install --upgrade pip --timeout 60 2>&1 | tee -a "${LOG_FILE}"
@@ -72,8 +73,41 @@ else
     log_msg "Virtual environment already exists, skipping"
 fi
 
-# Step 2: Clone WebUI
-log_msg "Step 2/4: Cloning Hermes WebUI..."
+# Step 2: Clone hermes-agent
+log_msg "Step 2/5: Cloning Hermes Agent..."
+if [ ! -f "${AGENT_DIR}/cli.py" ]; then
+    AGENT_URL="https://github.com/NousResearch/hermes-agent.git"
+    agent_ok=1
+    
+    for proxy in "${GH_PROXIES[@]}"; do
+        if [ -n "${proxy}" ]; then
+            FULL_URL="${proxy}${AGENT_URL}"
+        else
+            FULL_URL="${AGENT_URL}"
+        fi
+        
+        log_msg "Trying git clone via: ${FULL_URL}"
+        rm -rf "${AGENT_DIR}"
+        if git clone --depth 1 "${FULL_URL}" "${AGENT_DIR}" 2>&1 | tee -a "${LOG_FILE}"; then
+            if [ -f "${AGENT_DIR}/cli.py" ]; then
+                log_msg "hermes-agent cloned successfully"
+                cd "${AGENT_DIR}"
+                git remote set-url origin "${AGENT_URL}"
+                agent_ok=0
+                break
+            fi
+        fi
+    done
+    
+    if [ "${agent_ok}" -ne 0 ]; then
+        error_exit "Failed to clone hermes-agent from all proxies"
+    fi
+else
+    log_msg "hermes-agent already exists, skipping"
+fi
+
+# Step 3: Clone WebUI
+log_msg "Step 3/5: Cloning Hermes WebUI..."
 if [ ! -f "${WEBUI_DIR}/server.py" ]; then
     CLONE_URL="https://github.com/nesquena/hermes-webui.git"
     git_ok=1
@@ -87,7 +121,7 @@ if [ ! -f "${WEBUI_DIR}/server.py" ]; then
         
         log_msg "Trying git clone via: ${FULL_URL}"
         rm -rf "${WEBUI_DIR}"
-        if git clone "${FULL_URL}" "${WEBUI_DIR}" 2>&1 | tee -a "${LOG_FILE}"; then
+        if git clone --depth 1 "${FULL_URL}" "${WEBUI_DIR}" 2>&1 | tee -a "${LOG_FILE}"; then
             if [ -f "${WEBUI_DIR}/server.py" ]; then
                 log_msg "Git clone successful"
                 cd "${WEBUI_DIR}"
@@ -105,25 +139,25 @@ else
     log_msg "WebUI already exists, skipping"
 fi
 
-# Step 3: Install hermes-agent
-log_msg "Step 3/4: Installing hermes-agent..."
-agent_installed=1
+# Step 4: Install hermes-agent dependencies
+log_msg "Step 4/5: Installing hermes-agent dependencies..."
+agent_deps_installed=1
 
 for mirror in "${PIP_MIRRORS[@]}"; do
     log_msg "Trying pip install with mirror: ${mirror}"
-    if "${VENV_DIR}/bin/pip" install -i "${mirror}" --trusted-host "$(echo "${mirror}" | awk -F'/' '{print $3}')" --timeout 120 hermes-agent 2>&1 | tee -a "${LOG_FILE}"; then
-        log_msg "hermes-agent installed successfully"
-        agent_installed=0
+    if "${VENV_DIR}/bin/pip" install -i "${mirror}" --trusted-host "$(echo "${mirror}" | awk -F'/' '{print $3}')" --timeout 120 -e "${AGENT_DIR}" 2>&1 | tee -a "${LOG_FILE}"; then
+        log_msg "hermes-agent dependencies installed successfully"
+        agent_deps_installed=0
         break
     fi
 done
 
-if [ "${agent_installed}" -ne 0 ]; then
-    error_exit "Failed to install hermes-agent from all mirrors"
+if [ "${agent_deps_installed}" -ne 0 ]; then
+    error_exit "Failed to install hermes-agent dependencies from all mirrors"
 fi
 
-# Step 4: Install WebUI dependencies
-log_msg "Step 4/4: Installing WebUI dependencies..."
+# Step 5: Install WebUI dependencies
+log_msg "Step 5/5: Installing WebUI dependencies..."
 if [ -f "${WEBUI_DIR}/requirements.txt" ]; then
     webui_deps_installed=1
     for mirror in "${PIP_MIRRORS[@]}"; do

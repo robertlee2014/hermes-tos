@@ -1,0 +1,27 @@
+[Unit]
+Description=Hermes AI Agent - Self-evolving AI Agent with WebUI
+After=network.target multi-user.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=hermes
+Group=hermes
+WorkingDirectory=/usr/local/hermes-app
+ExecStart=/usr/local/hermes-app/bin/hermes-start.sh start
+ExecStop=/usr/local/hermes-app/bin/hermes-start.sh stop
+ExecReload=/usr/local/hermes-app/bin/hermes-start.sh restart
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/var/log/hermes-app/hermes.log
+StandardError=append:/var/log/hermes-app/hermes.log
+
+# 安全加固
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/usr/local/hermes-app /var/log/hermes-app /var/api /volume1/HermesWorkspace /volume2/HermesWorkspace /volume3/HermesWorkspace /volume4/HermesWorkspace /volume5/HermesWorkspace
+
+[Install]
+WantedBy=multi-user.target
