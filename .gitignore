@@ -1,14 +1,51 @@
-# fpk builds
-*.fpk
-app.tgz
+```
+# Build artifacts and packages
+*.deb
+*.sha256
+DEBIAN/
+dist/
+build/
+target/
 
-# Python
+# Dependencies
+node_modules/
+venv/
+.venv/
 __pycache__/
-*.py[cod]
-*$py.class
+*.egg-info/
 
-# macOS
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# OS specific
 .DS_Store
+Thumbs.db
 
-# Temp
-*.bak
+# Compression artifacts
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+```
