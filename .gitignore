@@ -1,14 +1,15 @@
 ```
-# Debian package files
-*.deb
-*.deb.sha256
+# Binary/executable files
+*.exe
+*.dll
+*.so
+*.a
+*.obj
+*.out
 
-# DEBIAN directory (contains package metadata)
-tos-hermes/DEBIAN/
-
-# Build artifacts
-build/
+# Build artifacts and distributions
 dist/
+build/
 target/
 
 # Dependencies
@@ -18,51 +19,35 @@ venv/
 __pycache__/
 .mypy_cache/
 .pytest_cache/
+.gradle/
 
 # Logs and temporary files
 *.log
 *.tmp
+
+# Editors and IDEs
+.vscode/
+.idea/
 *.swp
+*.swo
+
+# System files
+.DS_Store
+Thumbs.db
 
 # Environment files
 .env
 .env.local
 *.env.*
 
-# Editors
-.vscode/
-.idea/
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
 # Coverage reports
 coverage/
 htmlcov/
 .coverage
 
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
+# Package files
 *.deb
-*.Z
-*.lz
-*.lzo
+*.rpm
 *.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
+*.zip
 ```
