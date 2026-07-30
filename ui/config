@@ -1,6 +1,6 @@
 {
     ".url": {
-        "hermes-app.Application": {
+        "com.nousresearch.hermes.Application": {
             "title": "Hermes AI Agent",
             "icon": "images/icon_{0}.png",
             "type": "window",
