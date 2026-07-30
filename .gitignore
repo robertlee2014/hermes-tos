@@ -1,7 +1,99 @@
 ```
-# Debian package files
-DEBIAN/
+# Package files
+*.deb
+*.rpm
+*.tar.gz
+*.zip
+
+# Build artifacts
+build/
+dist/
+target/
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.egg-info/
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # Logs
 *.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Python specific
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Temporary files
+*.tmp
+*~
+```
+
+Wait, let me reconsider this. Looking at the file changes again:
+
+### Modified files:
+['README.md', 'hermes-app_0.1.9_amd64.deb', 'hermes-app_0.1.9_amd64.deb.sha256', 'tos-hermes/DEBIAN/postinst', 'ui/config']
+
+The changes include a .deb file (package) and related files. This looks like build/deployment artifacts. Let me provide the appropriate .gitignore:
+
+```
+# Package files
+*.deb
+*.sha256
+
+# Build artifacts  
+build/
+dist/
+target/
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*~
 ```
