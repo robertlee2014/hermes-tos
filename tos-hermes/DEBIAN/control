@@ -1,4 +1,4 @@
-Package: com.nousresearch.hermes
+Package: hermes-app
 Version: 0.1.9
 Architecture: amd64
 Maintainer: Nous Research <support@nousresearch.com>

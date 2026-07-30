@@ -5,7 +5,7 @@ Hermes 是一款自进化 AI 智能体应用，专为 TOS 7 系统设计。提�
 ## 应用信息
 
 - **应用名称**: Hermes
-- **包标识符**: `com.nousresearch.hermes`
+- **包标识符**: `hermes-app`
 - **应用类型**: Deb 应用（WebUI 内部打开 - iframe 模式）
 - **支持架构**: x86_64 (amd64)
 - **最低系统要求**: TOS 7.0.0+
@@ -28,7 +28,7 @@ Hermes 是一款自进化 AI 智能体应用，专为 TOS 7 系统设计。提�
 3. 搜索 "**Hermes**"
 4. 点击「安装」按钮
 
-系统将自动下载并配置所有依赖，无需手动操作。
+系统将自动下载并配置所有依赖，无需手动操作。应用将安装到当前 deb 包所在磁盘，并在该磁盘创建 `HermesWorkspace` 目录用于存储运行时数据。
 
 ### 方式二：手动安装 deb 包
 
@@ -40,14 +40,20 @@ cd tos-hermes
 ./build.sh
 
 # 安装 deb 包
-sudo dpkg -i ../com.nousresearch.hermes_*.deb
+sudo dpkg -i ../hermes-app_*.deb
 
 # 启动服务
-sudo systemctl start com.nousresearch.hermes
+sudo systemctl start hermes-app
 
 # 查看运行状态
-sudo systemctl status com.nousresearch.hermes
+sudo systemctl status hermes-app
 ```
+
+> **安装路径说明**：
+> - 应用会自动检测 deb 包安装的磁盘（如 `/volume1`, `/volume2` 等）
+> - 在该磁盘下创建 `/HermesWorkspace/` 目录作为数据工作区
+> - 所有动态下载的数据（Python 虚拟环境、WebUI 源码、Agent 工作区）均存储于 `HermesWorkspace` 下
+> - 二进制文件和配置文件仍位于标准系统路径 `/usr/local/hermes-app/`
 
 ## 访问方式
 
@@ -61,11 +67,11 @@ sudo systemctl status com.nousresearch.hermes
 ### 方法 2：浏览器直接访问
 
 ```
-http://<您的 NAS IP>/com.nousresearch.hermes/
+http://<您的 NAS IP>/hermes-app/
 ```
 
 > **关于 URL 路径的说明**：
-> - 路径 `/com.nousresearch.hermes/` 必须与应用包标识符完全一致，**无法简化**。
+> - 路径 `/hermes-app/` 必须与应用包标识符完全一致，**无法简化**。
 > - 这是 TOS 7 的安全路由机制，确保不同应用间的命名空间隔离。
 > - **推荐方式**：通过 TOS 桌面应用图标访问，自动跳转且无需记忆地址。
 
@@ -76,26 +82,31 @@ http://<您的 NAS IP>/com.nousresearch.hermes/
 ### 目录结构
 
 ```
-/usr/local/com.nousresearch.hermes/
+# 系统路径（静态文件）
+/usr/local/hermes-app/
 ├── bin/
 │   └── hermes-start.sh          # 启动脚本
 ├── images/icons/
-│   └── com.nousresearch.hermes.svg  # 应用图标
-├── init.d/
-│   └── com.nousresearch.hermes.service  # systemd 服务配置
-└── data/                        # 运行时数据（首次启动时生成）
-    ├── venv/                    # Python 虚拟环境
-    ├── hermes-webui/            # WebUI 源码
-    └── workspace/               # Agent 工作区与记忆存储
+│   └── hermes-app.svg           # 应用图标
+└── init.d/
+    └── hermes-app.service       # systemd 服务配置
+
+# 数据路径（动态数据，位于 deb 安装磁盘）
+/volumeX/HermesWorkspace/        # X 为实际磁盘编号（如 volume1, volume2）
+├── venv/                        # Python 虚拟环境（首次启动时生成）
+├── hermes-webui/                # WebUI 源码（动态下载）
+└── workspace/                   # Agent 工作区与记忆存储
 ```
+
+> **说明**：TOS 系统可能有多个磁盘（`/volume1`, `/volume2` 等），deb 包安装时会自动检测目标磁盘，并在该磁盘根目录创建 `HermesWorkspace` 文件夹用于存储所有运行时数据。
 
 ### 通信机制
 
 | 组件 | 实现方式 |
 |------|---------|
 | **前端展示** | TOS 桌面内嵌 iframe |
-| **后端服务** | Unix Socket (`/var/api/com.nousresearch.hermes.sock`) |
-| **请求代理** | TOS 平台代理 (`/v2/proxy/com.nousresearch.hermes/`) |
+| **后端服务** | Unix Socket (`/var/api/hermes-app.sock`) |
+| **请求代理** | TOS 平台代理 (`/v2/proxy/hermes-app/`) |
 | **身份验证** | Cookie + X-Csrf-Token 双重校验 |
 
 ### 安全特性
@@ -123,8 +134,8 @@ cd tos-hermes
 ./build.sh
 
 # 或手动构建
-dpkg-deb --build . ../com.nousresearch.hermes_$(date +%Y%m%d)_amd64.deb
-sha256sum ../com.nousresearch.hermes_*.deb > ../com.nousresearch.hermes_*.deb.sha256
+dpkg-deb --build . ../hermes-app_$(date +%Y%m%d)_amd64.deb
+sha256sum ../hermes-app_*.deb > ../hermes-app_*.deb.sha256
 ```
 
 ### 配置校验
@@ -135,13 +146,13 @@ python3 -c "import json; json.load(open('config.ini'))"
 
 # 校验语言文件（14 种语言）
 python3 -c "
-with open('com.nousresearch.hermes.lang') as f:
+with open('hermes-app.lang') as f:
     langs = [l.split('=')[0] for l in f if '=' in l]
     print(f'已支持 {len(langs)} 种语言：{langs}')
 "
 
 # 校验 SVG 图标格式
-grep -q 'viewBox' usr/local/com.nousresearch.hermes/images/icons/com.nousresearch.hermes.svg && echo '图标格式正确'
+grep -q 'viewBox' usr/local/hermes-app/images/icons/hermes-app.svg && echo '图标格式正确'
 ```
 
 ### CI/CD
@@ -155,13 +166,13 @@ grep -q 'viewBox' usr/local/com.nousresearch.hermes/images/icons/com.nousresearc
 **解决方案**:
 ```bash
 # 查看详细日志
-journalctl -u com.nousresearch.hermes -n 50 --no-pager
+journalctl -u hermes-app -n 50 --no-pager
 
 # 查看安装日志
-cat /var/log/com.nousresearch.hermes/install.log
+cat /var/log/hermes-app/install.log
 
 # 重启服务
-sudo systemctl restart com.nousresearch.hermes
+sudo systemctl restart hermes-app
 ```
 
 ### Q: 如何重置所有数据？
@@ -169,16 +180,19 @@ sudo systemctl restart com.nousresearch.hermes
 **警告**: 此操作将删除所有工作流、记忆和配置！
 
 ```bash
-sudo systemctl stop com.nousresearch.hermes
-sudo rm -rf /usr/local/com.nousresearch.hermes/data
-sudo systemctl start com.nousresearch.hermes
+sudo systemctl stop hermes-app
+# 查找 HermesWorkspace 所在磁盘（通常在 /volume1, /volume2 等）
+sudo rm -rf /volume*/HermesWorkspace
+sudo systemctl start hermes-app
 ```
+
+> **提示**：如果不确定 `HermesWorkspace` 的位置，可以运行 `find /volume* -maxdepth 1 -type d -name "HermesWorkspace"` 来查找。
 
 ### Q: 如何查看版本号？
 
 ```bash
 # 查看已安装包版本
-dpkg -l | grep com.nousresearch.hermes
+dpkg -l | grep hermes-app
 
 # 或在应用内查看（设置页面）
 ```
@@ -191,18 +205,22 @@ dpkg -l | grep com.nousresearch.hermes
 
 ### 升级应用
 ```bash
-sudo dpkg -i com.nousresearch.hermes_new_version.deb
-sudo systemctl restart com.nousresearch.hermes
+sudo dpkg -i hermes-app_new_version.deb
+sudo systemctl restart hermes-app
 ```
 
 ### 卸载应用
 ```bash
-sudo apt remove com.nousresearch.hermes
+sudo apt remove hermes-app
 # 或
-sudo dpkg -r com.nousresearch.hermes
+sudo dpkg -r hermes-app
 ```
 
-> 卸载时会询问是否保留数据，根据需求选择即可。
+> **数据保留说明**：
+> - 卸载时会询问是否保留 `HermesWorkspace` 数据目录
+> - 选择"是"则保留所有工作流和记忆，重新安装后可继续使用
+> - 选择"否"则完全删除 `/volume*/HermesWorkspace` 目录
+> - 手动删除数据：`sudo rm -rf /volume*/HermesWorkspace`
 
 ## 相关资源
 
