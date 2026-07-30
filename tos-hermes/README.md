@@ -55,6 +55,38 @@ sudo systemctl status hermes-app
 > - 所有动态下载的数据（Python 虚拟环境、WebUI 源码、Agent 工作区）均存储于 `HermesWorkspace` 下
 > - 二进制文件和配置文件仍位于标准系统路径 `/usr/local/hermes-app/`
 
+### 🆕 网络受限环境：本地源码兜底方案
+
+如果您的网络环境无法访问 GitHub，可以预先上传源码文件夹进行本地安装：
+
+#### 操作步骤：
+
+1. **下载源码**（在有网络的机器上）：
+   ```bash
+   git clone https://github.com/NousResearch/hermes-agent.git hermes-agent-source
+   git clone https://github.com/nesquena/hermes-webui.git hermes-webui-source
+   ```
+
+2. **上传到 NAS**：
+   - 通过文件管理器或 SCP 将两个文件夹上传到任意磁盘的 `HermesWorkspace` 目录
+   - 例如：`/volume1/HermesWorkspace/hermes-agent-source/` 和 `/volume1/HermesWorkspace/hermes-webui-source/`
+   - 或者先创建目录：`mkdir -p /volume1/HermesWorkspace`
+
+3. **安装应用**：
+   - 执行上述安装命令
+   - 安装脚本会**优先检测本地源码**，如果存在则直接使用，无需网络下载
+
+4. **验证安装**：
+   ```bash
+   cat /var/log/hermes-app/install.log | grep "LOCAL FALLBACK"
+   ```
+
+> **优势**：
+> - ✅ 完全离线安装，无需访问 GitHub
+> - ✅ 可使用特定版本的源码（固定版本更稳定）
+> - ✅ 适合企业内网、防火墙严格的环境
+> - ✅ 本地源码会被保留，方便后续重装或升级时复用
+
 ## 访问方式
 
 安装完成后，通过以下方式访问 Hermes：
