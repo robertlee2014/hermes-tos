@@ -1,15 +1,15 @@
 ```
-# Binary/executable files
-*.exe
-*.dll
-*.so
-*.a
-*.obj
-*.out
+# Package files
+*.deb
+*.rpm
+*.tar.gz
+*.tar.xz
+*.zip
+*.gz
 
-# Build artifacts and distributions
-dist/
+# Build artifacts
 build/
+dist/
 target/
 
 # Dependencies
@@ -17,37 +17,39 @@ node_modules/
 .venv/
 venv/
 __pycache__/
-.mypy_cache/
-.pytest_cache/
-.gradle/
+*.egg-info/
 
-# Logs and temporary files
-*.log
-*.tmp
+# Environment
+.env
+.env.local
+*.env.*
 
-# Editors and IDEs
+# Editors
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# System files
+# OS
 .DS_Store
 Thumbs.db
 
-# Environment files
-.env
-.env.local
-*.env.*
+# Logs
+*.log
 
-# Coverage reports
+# Coverage
+.coverage
 coverage/
 htmlcov/
-.coverage
 
-# Package files
-*.deb
-*.rpm
-*.tar.gz
-*.zip
+# Python specific
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Temporary files
+*.tmp
+*~
 ```
