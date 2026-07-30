@@ -238,6 +238,11 @@ log_msg "Note: Local fallback directories (${LOCAL_AGENT_DIR}, ${LOCAL_WEBUI_DIR
 chown -R hermes:hermes "${DATA_DIR}"
 chmod 755 "${VENV_DIR}/bin/"
 
+# Set executable permissions for cmd scripts
+log_msg "Setting executable permissions for cmd scripts..."
+chmod +x /usr/local/hermes-app/cmd/*
+log_msg "Cmd scripts permissions set"
+
 # Enable and start service
 systemctl daemon-reload
 systemctl enable hermes-app.service
