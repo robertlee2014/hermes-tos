@@ -1,0 +1,9 @@
+# Hermes App - Source Code Configuration
+# Copy this file to /etc/hermes-app/sources.conf and modify the paths as needed
+# 
+# HERMES_AGENT_SOURCE="/path/to/your/hermes-agent-source"
+# HERMES_WEBUI_SOURCE="/path/to/your/hermes-webui-source"
+#
+# Example:
+# HERMES_AGENT_SOURCE="/volume1/HermesWorkspace/hermes-agent-source"
+# HERMES_WEBUI_SOURCE="/volume1/HermesWorkspace/hermes-webui-source"

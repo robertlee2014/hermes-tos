@@ -45,10 +45,49 @@ log_msg "=== Hermes AI Agent Post-Installation ==="
 log_msg "Data directory: ${DATA_DIR}"
 
 # ==========================================
-# 本地兜底支持：用户可预先上传源码到 DATA_DIR
+# 本地兜底支持：用户可预先上传源码到指定目录
+# 支持三种方式：
+# 1. 配置文件 /etc/hermes-app/sources.conf
+# 2. 环境变量 HERMES_AGENT_SOURCE, HERMES_WEBUI_SOURCE
+# 3. 默认路径 ${DATA_DIR}/hermes-agent-source, ${DATA_DIR}/hermes-webui-source
 # ==========================================
-LOCAL_AGENT_DIR="${DATA_DIR}/hermes-agent-source"
-LOCAL_WEBUI_DIR="${DATA_DIR}/hermes-webui-source"
+
+AGENT_SOURCE_PATH=""
+WEBUI_SOURCE_PATH=""
+
+# 方式 1: 读取配置文件
+if [ -f "/etc/hermes-app/sources.conf" ]; then
+    source /etc/hermes-app/sources.conf
+    if [ -n "$HERMES_AGENT_SOURCE" ]; then
+        AGENT_SOURCE_PATH="$HERMES_AGENT_SOURCE"
+        log_msg "[CONFIG] Using agent source from config: ${AGENT_SOURCE_PATH}"
+    fi
+    if [ -n "$HERMES_WEBUI_SOURCE" ]; then
+        WEBUI_SOURCE_PATH="$HERMES_WEBUI_SOURCE"
+        log_msg "[CONFIG] Using webui source from config: ${WEBUI_SOURCE_PATH}"
+    fi
+fi
+
+# 方式 2: 环境变量覆盖（优先级更高）
+if [ -n "$HERMES_AGENT_SOURCE" ]; then
+    AGENT_SOURCE_PATH="$HERMES_AGENT_SOURCE"
+    log_msg "[ENV] Using agent source from env: ${AGENT_SOURCE_PATH}"
+fi
+if [ -n "$HERMES_WEBUI_SOURCE" ]; then
+    WEBUI_SOURCE_PATH="$HERMES_WEBUI_SOURCE"
+    log_msg "[ENV] Using webui source from env: ${WEBUI_SOURCE_PATH}"
+fi
+
+# 方式 3: 默认路径兜底
+if [ -z "$AGENT_SOURCE_PATH" ]; then
+    AGENT_SOURCE_PATH="${DATA_DIR}/hermes-agent-source"
+fi
+if [ -z "$WEBUI_SOURCE_PATH" ]; then
+    WEBUI_SOURCE_PATH="${DATA_DIR}/hermes-webui-source"
+fi
+
+LOCAL_AGENT_DIR="$AGENT_SOURCE_PATH"
+LOCAL_WEBUI_DIR="$WEBUI_SOURCE_PATH"
 
 AGENT_SOURCE_READY=false
 WEBUI_SOURCE_READY=false
