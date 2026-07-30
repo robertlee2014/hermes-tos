@@ -1,0 +1,136 @@
+#!/bin/bash
+# Hermes AI Agent - TOS 7 postinst script
+# Installs Python dependencies and downloads WebUI after installation
+
+set -e
+
+LOG_FILE="/var/log/com.nousresearch.hermes/install.log"
+DATA_DIR="/usr/local/com.nousresearch.hermes/data"
+VENV_DIR="${DATA_DIR}/venv"
+WEBUI_DIR="${DATA_DIR}/hermes-webui"
+WORKSPACE_DIR="${DATA_DIR}/workspace"
+
+log_msg() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "${LOG_FILE}"
+}
+
+error_exit() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - ERROR: $1" | tee -a "${LOG_FILE}"
+    exit 1
+}
+
+mkdir -p "${DATA_DIR}" "${WORKSPACE_DIR}" "$(dirname "${LOG_FILE}")"
+
+log_msg "=== Hermes AI Agent Post-Installation ==="
+
+# pip mirrors fallback chain
+PIP_MIRRORS=(
+    "https://mirrors.aliyun.com/pypi/simple/"
+    "https://pypi.tuna.tsinghua.edu.cn/simple/"
+    "https://mirrors.ustc.edu.cn/pypi/web/simple/"
+    "https://repo.huaweicloud.com/repository/pypi/simple/"
+    "https://mirrors.cloud.tencent.com/pypi/simple/"
+    "https://pypi.org/simple/"
+)
+
+# GitHub proxies fallback chain
+GH_PROXIES=(
+    "https://ghproxy.com/"
+    "https://gh.api.coderkeeper.com/"
+    "https://gitclone.com/"
+    "https://gh.ddlc.top/"
+    ""
+)
+
+# Step 1: Create virtual environment
+log_msg "Step 1/4: Creating Python virtual environment..."
+if [ ! -f "${VENV_DIR}/bin/python3" ]; then
+    python3 -m venv "${VENV_DIR}" 2>&1 | tee -a "${LOG_FILE}"
+    "${VENV_DIR}/bin/pip" install --upgrade pip --timeout 60 2>&1 | tee -a "${LOG_FILE}"
+    log_msg "Virtual environment created at ${VENV_DIR}"
+else
+    log_msg "Virtual environment already exists, skipping"
+fi
+
+# Step 2: Clone WebUI
+log_msg "Step 2/4: Cloning Hermes WebUI..."
+if [ ! -f "${WEBUI_DIR}/server.py" ]; then
+    CLONE_URL="https://github.com/nesquena/hermes-webui.git"
+    git_ok=1
+    
+    for proxy in "${GH_PROXIES[@]}"; do
+        if [ -n "${proxy}" ]; then
+            FULL_URL="${proxy}${CLONE_URL}"
+        else
+            FULL_URL="${CLONE_URL}"
+        fi
+        
+        log_msg "Trying git clone via: ${FULL_URL}"
+        rm -rf "${WEBUI_DIR}"
+        if git clone "${FULL_URL}" "${WEBUI_DIR}" 2>&1 | tee -a "${LOG_FILE}"; then
+            if [ -f "${WEBUI_DIR}/server.py" ]; then
+                log_msg "Git clone successful"
+                cd "${WEBUI_DIR}"
+                git remote set-url origin "${CLONE_URL}"
+                git_ok=0
+                break
+            fi
+        fi
+    done
+    
+    if [ "${git_ok}" -ne 0 ]; then
+        error_exit "Failed to clone WebUI from all proxies"
+    fi
+else
+    log_msg "WebUI already exists, skipping"
+fi
+
+# Step 3: Install hermes-agent
+log_msg "Step 3/4: Installing hermes-agent..."
+agent_installed=1
+
+for mirror in "${PIP_MIRRORS[@]}"; do
+    log_msg "Trying pip install with mirror: ${mirror}"
+    if "${VENV_DIR}/bin/pip" install -i "${mirror}" --trusted-host "$(echo "${mirror}" | awk -F'/' '{print $3}')" --timeout 120 hermes-agent 2>&1 | tee -a "${LOG_FILE}"; then
+        log_msg "hermes-agent installed successfully"
+        agent_installed=0
+        break
+    fi
+done
+
+if [ "${agent_installed}" -ne 0 ]; then
+    error_exit "Failed to install hermes-agent from all mirrors"
+fi
+
+# Step 4: Install WebUI dependencies
+log_msg "Step 4/4: Installing WebUI dependencies..."
+if [ -f "${WEBUI_DIR}/requirements.txt" ]; then
+    webui_deps_installed=1
+    for mirror in "${PIP_MIRRORS[@]}"; do
+        log_msg "Trying to install WebUI deps with mirror: ${mirror}"
+        if "${VENV_DIR}/bin/pip" install -i "${mirror}" --trusted-host "$(echo "${mirror}" | awk -F'/' '{print $3}')" --timeout 120 -r "${WEBUI_DIR}/requirements.txt" 2>&1 | tee -a "${LOG_FILE}"; then
+            log_msg "WebUI dependencies installed successfully"
+            webui_deps_installed=0
+            break
+        fi
+    done
+    
+    if [ "${webui_deps_installed}" -ne 0 ]; then
+        log_msg "WARNING: Some WebUI dependencies may have failed to install"
+    fi
+fi
+
+# Fix permissions
+chown -R hermes:hermes "${DATA_DIR}"
+chmod 755 "${VENV_DIR}/bin/"
+
+# Enable and start service
+systemctl daemon-reload
+systemctl enable com.nousresearch.hermes.service
+
+log_msg "=== Installation Completed ==="
+log_msg "Start the application from TOS App Center or run:"
+log_msg "  systemctl start com.nousresearch.hermes"
+log_msg "Access via: http://<NAS_IP>/com.nousresearch.hermes/"
+
+exit 0
