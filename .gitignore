@@ -1,18 +1,7 @@
 ```
-# Build artifacts and packages
-*.deb
-*.deb.sha256
-tos-hermes/
-
-# Temporary and generated files
-*.tmp
-*.temp
+# Debian package files
+DEBIAN/
 
 # Logs
 *.log
-
-# Environment files
-.env
-.env.local
-*.env.*
 ```
