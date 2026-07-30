@@ -1,0 +1,11 @@
+#!/bin/bash
+# Hermes AI Agent - TOS 7 postrm script
+# Cleans up after removal (optional data preservation)
+
+set -e
+
+echo "Hermes AI Agent removed."
+echo "Data directory /usr/local/com.nousresearch.hermes/data is preserved."
+echo "To completely remove all data, run: rm -rf /usr/local/com.nousresearch.hermes"
+
+exit 0

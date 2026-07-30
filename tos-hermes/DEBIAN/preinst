@@ -1,0 +1,30 @@
+#!/bin/bash
+# Hermes AI Agent - TOS 7 preinst script
+# Creates user and directories before installation
+
+set -e
+
+echo "Creating hermes user and group..."
+
+# Create user if not exists
+if ! id -u hermes >/dev/null 2>&1; then
+    useradd -r -s /bin/false -d /usr/local/com.nousresearch.hermes hermes
+    echo "User 'hermes' created"
+else
+    echo "User 'hermes' already exists"
+fi
+
+# Create required directories
+mkdir -p /usr/local/com.nousresearch.hermes/data
+mkdir -p /var/log/com.nousresearch.hermes
+mkdir -p /var/run/com.nousresearch.hermes
+mkdir -p /var/api
+
+# Set ownership
+chown -R hermes:hermes /usr/local/com.nousresearch.hermes
+chown -R hermes:hermes /var/log/com.nousresearch.hermes
+chown -R hermes:hermes /var/run/com.nousresearch.hermes
+chown hermes:hermes /var/api
+
+echo "Pre-installation completed"
+exit 0
